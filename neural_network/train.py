@@ -33,9 +33,9 @@ class CreateDataset(Dataset):
 
         # count amount of files
         subfolders = [os.path.join(self.folder, i) for i in os.listdir(self.folder) if os.path.isdir(os.path.join(self.folder, i))]
-        self.folderA = [os.path.join(subfolders[0],i) for i in os.listdir(subfolders[0]) if os.path.isfile(os.path.join(subfolders[0],i)) and os.path.splitext(os.path.join(subfolders[0],i))[1] == ".wav"]
-        self.folderB = [os.path.join(subfolders[1],i) for i in os.listdir(subfolders[1]) if os.path.isfile(os.path.join(subfolders[1],i)) and os.path.splitext(os.path.join(subfolders[1],i))[1] == ".wav"]
-        self.filenames = self.folderA + self.folderB
+        folderA = [os.path.join(subfolders[0],i) for i in os.listdir(subfolders[0]) if os.path.isfile(os.path.join(subfolders[0],i)) and os.path.splitext(os.path.join(subfolders[0],i))[1] == ".wav"]
+        folderB = [os.path.join(subfolders[1],i) for i in os.listdir(subfolders[1]) if os.path.isfile(os.path.join(subfolders[1],i)) and os.path.splitext(os.path.join(subfolders[1],i))[1] == ".wav"]
+        self.filenames = folderA + folderB
     
     # get length of data
     def __len__(self):
@@ -48,8 +48,8 @@ class CreateDataset(Dataset):
 
         # get lable 0 = Fake 1 = Real
         # get worried about if this breaks w shuffle
-        if audio_path in self.folderA: label = 0
-        elif audio_path in self.folderB: label = 1
+        if os.path.dirname(audio_path).split("/")[-1] == "fake": label = 0
+        elif os.path.dirname(audio_path).split("/")[-1] == "real": label = 1
 
         signal, sr = torchaudio.load(audio_path) #get audio signal & sample rate
         signal = self._resample_if_necessary(signal, sr)
