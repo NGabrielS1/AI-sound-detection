@@ -7,6 +7,7 @@ from torch import nn, optim
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
+from torchsummary import summary
 import torchaudio
 
 # find device
@@ -135,3 +136,7 @@ class CNNLSTM(nn.Module):
         out, _ = self.lstm(X, (hidden_states, cell_states))
         out = self.output_layer(out[:, -1, :]) # flatten before output layer
         return out
+
+model = CNNLSTM(input_len, hidden_size, num_classes, num_layers)
+print(model)
+summary(model, (100, sequence_len, input_len))
