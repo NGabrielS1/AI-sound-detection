@@ -157,10 +157,13 @@ def train(num_epochs, model, train_dataloader, valid_dataloader, criterion, opti
             optimizer.step()
 
             if (batch+1)%100 == 0:
-                print(f"Epoch: {epoch+1}; Batch {batch+1} / {steps_per_epoch}; Loss: {loss.item():>4f}")
+                print(f"Training Epoch: {epoch+1}; Batch {batch+1} / {steps_per_epoch}; Loss: {loss.item():>4f}")
         
         model.eval()
         with torch.no_grad():
             for batch, (images, labels) in enumerate(valid_dataloader):
                 x = model(images)
                 loss = criterion(x, labels)
+
+                if (batch+1)%100 == 0:
+                    print(f"Validation Epoch: {epoch+1}; Batch {batch+1} / {steps_per_epoch}; Loss: {loss.item():>4f}")
