@@ -48,8 +48,8 @@ class CreateDataset(Dataset):
 
         # get lable 0 = Fake 1 = Real
         # get worried about if this breaks w shuffle
-        if os.path.dirname(audio_path).split("/")[-1] == "fake": label = 0
-        elif os.path.dirname(audio_path).split("/")[-1] == "real": label = 1
+        if os.path.basename(os.path.dirname(audio_path)) == "fake": label = 0
+        elif os.path.basename(os.path.dirname(audio_path)) == "real": label = 1
 
         signal, sr = torchaudio.load(audio_path) #get audio signal & sample rate
         signal = self._resample_if_necessary(signal, sr)
