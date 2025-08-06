@@ -16,6 +16,7 @@ import torchaudio
 
 # find device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(device)
 
 #dataset class
 class CreateDataset(Dataset):
@@ -28,7 +29,7 @@ class CreateDataset(Dataset):
 
         self.device = device
         self.folder = sound_folder
-        self.transform = torchaudio.transforms.MelSpectrogram(sample_rate=self.TARGET_SAMPLE_RATE, n_fft=1024, hop_length=512, n_mels=64)
+        self.transform = torchaudio.transforms.MelSpectrogram(sample_rate=self.TARGET_SAMPLE_RATE, n_fft=1024, hop_length=512, n_mels=64).to(self.device)
 
         # count amount of files
         subfolders = [os.path.join(self.folder, i) for i in os.listdir(self.folder) if os.path.isdir(os.path.join(self.folder, i))]
@@ -36,7 +37,7 @@ class CreateDataset(Dataset):
         self.folderB = [os.path.join(subfolders[1],i) for i in os.listdir(subfolders[1]) if os.path.isfile(os.path.join(subfolders[1],i)) and os.path.splitext(os.path.join(subfolders[1],i))[1] == ".wav"]
         self.filenames = self.folderA + self.folderB
     
-    # len func
+    # get length of data
     def __len__(self):
         return len(self.filenames)
     
@@ -50,15 +51,14 @@ class CreateDataset(Dataset):
         if audio_path in self.folderA: label = 0
         elif audio_path in self.folderB: label = 1
 
-        signal, sr = torchaudio.load(audio_path)
+        signal, sr = torchaudio.load(audio_path) #get audio signal & sample rate
         signal = self._resample_if_necessary(signal, sr)
         if signal.shape[0] > 1: signal = torch.mean(signal, dim=0, keepdim=True) #change channels
-        if signal.shape[1] > self.NUM_SAMPLES: signal = signal[:, :self.NUM_SAMPLES] #cut
-        signal = self._right_pad_if_necessary(signal) #pad
+        if signal.shape[1] > self.NUM_SAMPLES: signal = signal[:, :self.NUM_SAMPLES] #cut signal
+        signal = self._right_pad_if_necessary(signal) #pad signal
         signal = self.transform(signal)
 
         return signal, label
-        # continue
     
     #resample
     def _resample_if_necessary(self, signal, sr):
@@ -102,9 +102,11 @@ valid_dataloader = DataLoader(valid_data, batch_size=batchsize)
 class CNNLSTM(nn.Module):
     def __init__(self, input_len, hidden_size, num_classes, num_layers):
         super(CNNLSTM, self).__init__()
+        #variables
         self.hidden_size = hidden_size
         self.num_layers = num_layers
 
+        #CNN
         self.conv1 = nn.Sequential(
             nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3, stride=1, padding=2),
             nn.ReLU(),
@@ -125,6 +127,7 @@ class CNNLSTM(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2)
         )
+        #LSTM
         self.lstm = nn.LSTM(input_len, hidden_size, num_layers, batch_first=True)
         self.output_layer = nn.Linear(hidden_size, num_classes)
     
@@ -144,7 +147,7 @@ class CNNLSTM(nn.Module):
         return out
 
 #create model, criterion, and optimizer
-model = CNNLSTM(input_len, hidden_size, num_classes, num_layers)
+model = CNNLSTM(input_len, hidden_size, num_classes, num_layers).to(device)
 # print(model)
 # summary(model, (batchsize, 1, 64, 87), col_names=("input_size", "output_size", "num_params"))
 loss_function = nn.CrossEntropyLoss()
@@ -158,17 +161,19 @@ def train(num_epochs, model, train_dataloader, valid_dataloader, criterion, opti
     valid_losses = []
     start_time = time.time()
 
-    #training
     for epoch in range(num_epochs):
+        #training
         epoch_loss = []
         model.train()
         for batch, (images, labels) in enumerate(train_dataloader):
-            x = model(images)
-            loss = criterion(x, labels)
+            images, labels = images.to(device), labels.to(device) #move to device
+            x = model(images) #get results
+            loss = criterion(x, labels) #pass results and label to loss function
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+            optimizer.zero_grad() #zero the gradients
+            loss.backward() #calculate backpropagation
+            optimizer.step() #optimize
+
             epoch_loss.append(loss.item())
 
             if (batch+1)%100 == 0:
@@ -183,8 +188,10 @@ def train(num_epochs, model, train_dataloader, valid_dataloader, criterion, opti
         with torch.no_grad():
             epoch_loss = []
             for batch, (images, labels) in enumerate(valid_dataloader):
-                x = model(images)
-                loss = criterion(x, labels)
+                images, labels = images.to(device), labels.to(device) #move to device
+                x = model(images) #get results
+                loss = criterion(x, labels) #pass results and lavel to loss function
+
                 epoch_loss.append(loss.item())
 
                 if (batch+1)%100 == 0:
@@ -206,7 +213,6 @@ def train(num_epochs, model, train_dataloader, valid_dataloader, criterion, opti
      # save our NN model
     torch.save(model.state_dict(), "neural_network/CNNLSTM_VOICE_NN.pt")
 
+#run training
 if __name__ == "__main__":
     train(num_epochs, model, train_dataloader, valid_dataloader, loss_function, optimizer)
-
-# add gpu support
