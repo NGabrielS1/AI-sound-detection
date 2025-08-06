@@ -89,8 +89,8 @@ learning_rate = 0.01
 train_data = CreateDataset("data/training", device)
 valid_data = CreateDataset("data/validation", device)
 
-train_dataloader = DataLoader(train_data, batch_size=batchsize)
-valid_dataloader = DataLoader(valid_data, batch_size=batchsize)
+train_dataloader = DataLoader(train_data, batch_size=batchsize, shuffle=True)
+valid_dataloader = DataLoader(valid_data, batch_size=batchsize, shuffle=False)
 
 # for batch in train_dataloader:
 #     x,y = batch
