@@ -79,8 +79,8 @@ num_epochs = 5
 learning_rate = 0.01
 
 # training and validation data, no testing here
-train_data = CreateDataset("../data/training", device)
-valid_data = CreateDataset("../data/validation", device)
+train_data = CreateDataset("data/training", device)
+valid_data = CreateDataset("data/validation", device)
 
 train_dataloader = DataLoader(train_data, batch_size=batchsize)
 valid_dataloader = DataLoader(valid_data, batch_size=batchsize)
