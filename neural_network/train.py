@@ -139,7 +139,7 @@ class CNNLSTM(nn.Module):
 
 model = CNNLSTM(input_len, hidden_size, num_classes, num_layers)
 print(model)
-summary(model, (batchsize, 1, 64, 87))
+summary(model, (batchsize, 1, 64, 87), col_names=("input_size", "output_size", "num_params"))
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr = learning_rate)
 
