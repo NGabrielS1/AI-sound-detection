@@ -29,7 +29,7 @@ class CreateDataset(Dataset):
 
         self.device = device
         self.folder = sound_folder
-        self.transform = torchaudio.transforms.MelSpectrogram(sample_rate=self.TARGET_SAMPLE_RATE, n_fft=1024, hop_length=512, n_mels=64).to(self.device)
+        self.transform = torchaudio.transforms.MelSpectrogram(sample_rate=self.TARGET_SAMPLE_RATE, n_fft=1024, hop_length=512, n_mels=64)
 
         # count amount of files
         subfolders = [os.path.join(self.folder, i) for i in os.listdir(self.folder) if os.path.isdir(os.path.join(self.folder, i))]
@@ -140,8 +140,8 @@ class CNNLSTM(nn.Module):
         X = X.permute(0, 2, 3, 1)  # (B, 5, 7, 128) chat
         X = X.reshape(-1, sequence_len, input_len) # chat
 
-        hidden_states = torch.zeros(self.num_layers, X.size(0), self.hidden_size) # state of the hidden layers (short term memory)
-        cell_states = torch.zeros(self.num_layers, X.size(0), self.hidden_size) # long term memory
+        hidden_states = torch.zeros(self.num_layers, X.size(0), self.hidden_size, device=X.device) # state of the hidden layers (short term memory)
+        cell_states = torch.zeros(self.num_layers, X.size(0), self.hidden_size, device=X.device) # long term memory
         out, _ = self.lstm(X, (hidden_states, cell_states))
         out = self.output_layer(out[:, -1, :]) # flatten before output layer
         return out
