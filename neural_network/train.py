@@ -137,6 +137,6 @@ class CNNLSTM(nn.Module):
         out = self.output_layer(out[:, -1, :]) # flatten before output layer
         return out
 
-# model = CNNLSTM(input_len, hidden_size, num_classes, num_layers)
-# print(model)
-# summary(model, (100, sequence_len, input_len))
+model = CNNLSTM(input_len, hidden_size, num_classes, num_layers)
+print(model)
+summary(model, (100, 1, 64, 87))
