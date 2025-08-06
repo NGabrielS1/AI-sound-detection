@@ -85,11 +85,11 @@ valid_data = CreateDataset("../data/validation", device)
 train_dataloader = DataLoader(train_data, batch_size=batchsize)
 valid_dataloader = DataLoader(valid_data, batch_size=batchsize)
 
-for batch in train_dataloader:
-    x,y = batch
-    print(x.shape)
-    print(y.shape)
-    break
+# for batch in train_dataloader:
+#     x,y = batch
+#     print(x.shape)
+#     print(y.shape)
+#     break
 
 #continue later
 class CNNLSTM(nn.Module):
@@ -126,23 +126,12 @@ class CNNLSTM(nn.Module):
         X = self.conv2(X)
         X = self.conv3(X)
         X = self.conv4(X)
-        print(X.shape)
 
         X = X.permute(0, 2, 3, 1)  # (B, 5, 7, 128) chat
         X = X.reshape(-1, sequence_len, input_len) # chat
-        print(X.shape)
 
         hidden_states = torch.zeros(self.num_layers, X.size(0), self.hidden_size) # state of the hidden layers (short term memory)
         cell_states = torch.zeros(self.num_layers, X.size(0), self.hidden_size) # long term memory
         out, _ = self.lstm(X, (hidden_states, cell_states))
         out = self.output_layer(out[:, -1, :]) # flatten before output layer
         return out
-
-model = CNNLSTM(input_len, hidden_size, num_classes, num_layers)
-for batch in train_dataloader:
-    x, y= batch
-    x = model.forward(x)
-    print(x.shape)
-    break
-
-# before working again, save to git please, double check, delete prints
