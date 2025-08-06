@@ -7,6 +7,7 @@ from torch import nn, optim
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
+from torchinfo import summary
 import torchaudio
 
 # find device
@@ -138,6 +139,7 @@ class CNNLSTM(nn.Module):
 
 model = CNNLSTM(input_len, hidden_size, num_classes, num_layers)
 print(model)
+summary(model, (batchsize, 1, 64, 87))
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr = learning_rate)
 
