@@ -86,11 +86,11 @@ valid_data = CreateDataset("data/validation", device)
 train_dataloader = DataLoader(train_data, batch_size=batchsize)
 valid_dataloader = DataLoader(valid_data, batch_size=batchsize)
 
-for batch in train_dataloader:
-    x,y = batch
-    print(x.shape)
-    print(y.shape)
-    break
+# for batch in train_dataloader:
+#     x,y = batch
+#     print(x.shape)
+#     print(y.shape)
+#     break
 
 #continue later
 class CNNLSTM(nn.Module):
@@ -138,8 +138,8 @@ class CNNLSTM(nn.Module):
         return out
 
 model = CNNLSTM(input_len, hidden_size, num_classes, num_layers)
-print(model)
-summary(model, (batchsize, 1, 64, 87), col_names=("input_size", "output_size", "num_params"))
+# print(model)
+# summary(model, (batchsize, 1, 64, 87), col_names=("input_size", "output_size", "num_params"))
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr = learning_rate)
 
