@@ -137,8 +137,10 @@ class CNNLSTM(nn.Module):
         X = self.conv3(X)
         X = self.conv4(X)
 
-        X = X.permute(0, 2, 3, 1)  # (B, 5, 7, 128) chat
-        X = X.reshape(-1, sequence_len, input_len) # chat
+        X = X.permute(0, 2, 3, 1)
+        # X = X.reshape(-1, sequence_len, input_len)
+        B, H, W, C = X.shape
+        X = X.reshape(B, H * W, C)
 
         hidden_states = torch.zeros(self.num_layers, X.size(0), self.hidden_size, device=X.device) # state of the hidden layers (short term memory)
         cell_states = torch.zeros(self.num_layers, X.size(0), self.hidden_size, device=X.device) # long term memory
@@ -149,7 +151,7 @@ class CNNLSTM(nn.Module):
 #create model, criterion, and optimizer
 model = CNNLSTM(input_len, hidden_size, num_classes, num_layers).to(device)
 # print(model)
-# summary(model, (batchsize, 1, 64, 87), col_names=("input_size", "output_size", "num_params"))
+summary(model, (batchsize, 1, 64, 87), col_names=("input_size", "output_size", "num_params"))
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr = learning_rate)
 
@@ -215,5 +217,5 @@ def train(num_epochs, model, train_dataloader, valid_dataloader, criterion, opti
     torch.save(model.state_dict(), "neural_network/CNNLSTM_VOICE_NN.pt")
 
 #run training
-if __name__ == "__main__":
-    train(num_epochs, model, train_dataloader, valid_dataloader, loss_function, optimizer)
+# if __name__ == "__main__":
+#     train(num_epochs, model, train_dataloader, valid_dataloader, loss_function, optimizer)
