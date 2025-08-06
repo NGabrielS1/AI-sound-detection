@@ -77,7 +77,7 @@ class CreateDataset(Dataset):
         return signal
 
 # define hyperparameters
-batchsize = 100
+batchsize = 32
 sequence_len = 35
 input_len = 128
 hidden_size = 128
