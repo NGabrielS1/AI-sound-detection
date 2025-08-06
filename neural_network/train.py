@@ -143,5 +143,24 @@ model = CNNLSTM(input_len, hidden_size, num_classes, num_layers)
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr = learning_rate)
 
-def train(num_epochs, model, train_dataloader, valid_dataloader, loss_function, optimizer):
+def train(num_epochs, model, train_dataloader, valid_dataloader, criterion, optimizer):
     steps_per_epoch = len(train_dataloader)
+
+    for epoch in range(num_epochs):
+        model.train()
+        for batch, (images, labels) in enumerate(train_dataloader):
+            x = model(images)
+            loss = criterion(x, labels)
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            if (batch+1)%100 == 0:
+                print(f"Epoch: {epoch+1}; Batch {batch+1} / {steps_per_epoch}; Loss: {loss.item():>4f}")
+        
+        model.eval()
+        with torch.no_grad():
+            for batch, (images, labels) in enumerate(valid_dataloader):
+                x = model(images)
+                loss = criterion(x, labels)
