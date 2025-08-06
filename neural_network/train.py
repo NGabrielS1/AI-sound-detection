@@ -17,6 +17,7 @@ import torchaudio
 # find device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+#dataset class
 class CreateDataset(Dataset):
 
     # initialize dataset variables
@@ -51,14 +52,15 @@ class CreateDataset(Dataset):
 
         signal, sr = torchaudio.load(audio_path)
         signal = self._resample_if_necessary(signal, sr)
-        if signal.shape[0] > 1: signal = torch.mean(signal, dim=0, keepdim=True)
-        if signal.shape[1] > self.NUM_SAMPLES: signal = signal[:, :self.NUM_SAMPLES]
-        signal = self._right_pad_if_necessary(signal)
+        if signal.shape[0] > 1: signal = torch.mean(signal, dim=0, keepdim=True) #change channels
+        if signal.shape[1] > self.NUM_SAMPLES: signal = signal[:, :self.NUM_SAMPLES] #cut
+        signal = self._right_pad_if_necessary(signal) #pad
         signal = self.transform(signal)
 
         return signal, label
         # continue
     
+    #resample
     def _resample_if_necessary(self, signal, sr):
         if sr != self.TARGET_SAMPLE_RATE:
             resampler = torchaudio.transforms.Resample(orig_freq=sr, new_freq=self.TARGET_SAMPLE_RATE)
@@ -75,15 +77,15 @@ class CreateDataset(Dataset):
 
 # define hyperparameters
 batchsize = 100
-sequence_len = 35 # chat
-input_len = 128 # chat
+sequence_len = 35
+input_len = 128
 hidden_size = 128
 num_layers = 2
 num_classes = 2
 num_epochs = 5
 learning_rate = 0.01
 
-# training and validation data, no testing here
+# Creating datasets and dataloaders
 train_data = CreateDataset("data/training", device)
 valid_data = CreateDataset("data/validation", device)
 
@@ -96,7 +98,7 @@ valid_dataloader = DataLoader(valid_data, batch_size=batchsize)
 #     print(y.shape)
 #     break
 
-#continue later
+#CNN-LSTM model
 class CNNLSTM(nn.Module):
     def __init__(self, input_len, hidden_size, num_classes, num_layers):
         super(CNNLSTM, self).__init__()
@@ -141,16 +143,24 @@ class CNNLSTM(nn.Module):
         out = self.output_layer(out[:, -1, :]) # flatten before output layer
         return out
 
+#create model, criterion, and optimizer
 model = CNNLSTM(input_len, hidden_size, num_classes, num_layers)
 # print(model)
 # summary(model, (batchsize, 1, 64, 87), col_names=("input_size", "output_size", "num_params"))
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr = learning_rate)
 
+#train function
 def train(num_epochs, model, train_dataloader, valid_dataloader, criterion, optimizer):
     steps_per_epoch = len(train_dataloader)
 
+    train_losses = []
+    valid_losses = []
+    start_time = time.time()
+
+    #training
     for epoch in range(num_epochs):
+        epoch_loss = []
         model.train()
         for batch, (images, labels) in enumerate(train_dataloader):
             x = model(images)
@@ -159,17 +169,42 @@ def train(num_epochs, model, train_dataloader, valid_dataloader, criterion, opti
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            epoch_loss.append(loss.item())
 
             if (batch+1)%100 == 0:
                 print(f"Training Epoch: {epoch+1}; Batch {batch+1} / {steps_per_epoch}; Loss: {loss.item():>4f}")
         
+        #track train loss
+        train_losses.append(mean(epoch_loss))
+        # try changing to median if data has outliers
+        
+        #validation
         model.eval()
         with torch.no_grad():
+            epoch_loss = []
             for batch, (images, labels) in enumerate(valid_dataloader):
                 x = model(images)
                 loss = criterion(x, labels)
+                epoch_loss.append(loss.item())
 
                 if (batch+1)%100 == 0:
                     print(f"Validation Epoch: {epoch+1}; Batch {batch+1} / {steps_per_epoch}; Loss: {loss.item():>4f}")
+        
+        #track valid loss
+        valid_losses.append(mean(epoch_loss))
 
-        # add graphs using matplotlib as well as model saving
+    #time taken
+    print(f"Training Took: {(time.time()-start_time)/60} minutes!")
+
+    # Graph the loss at each epoch
+    plt.plot(train_losses, label="Training Losses")
+    plt.plot(valid_losses, label="Validation Losses")
+    plt.title("Loss at Epoch")
+    plt.legend()
+    plt.show()
+
+     # save our NN model
+    torch.save(model.state_dict(), "neural_network/CNNLSTM_VOICE_NN.pt")
+
+if __name__ == "__main__":
+    train(num_epochs, model, train_dataloader, valid_dataloader, loss_function, optimizer)
