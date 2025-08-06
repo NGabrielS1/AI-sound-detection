@@ -138,3 +138,8 @@ class CNNLSTM(nn.Module):
 
 model = CNNLSTM(input_len, hidden_size, num_classes, num_layers)
 print(model)
+loss_function = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr = learning_rate)
+
+def train(num_epochs, model, train_dataloader, valid_dataloader, loss_function, optimizer):
+    steps_per_epoch = len(train_dataloader)
