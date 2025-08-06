@@ -176,7 +176,7 @@ def train(num_epochs, model, train_dataloader, valid_dataloader, criterion, opti
 
             epoch_loss.append(loss.item())
 
-            if (batch+1)%100 == 0:
+            if (batch+1)%10 == 0:
                 print(f"Training Epoch: {epoch+1}; Batch {batch+1} / {steps_per_epoch}; Loss: {loss.item():>4f}")
         
         #track train loss
@@ -194,7 +194,7 @@ def train(num_epochs, model, train_dataloader, valid_dataloader, criterion, opti
 
                 epoch_loss.append(loss.item())
 
-                if (batch+1)%100 == 0:
+                if (batch+1)%10 == 0:
                     print(f"Validation Epoch: {epoch+1}; Batch {batch+1} / {steps_per_epoch}; Loss: {loss.item():>4f}")
         
         #track valid loss
