@@ -1,13 +1,17 @@
 import os
+import time
 import torch
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from statistics import mean, median
 
 from torch import nn, optim
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from torchinfo import summary
+
 import torchaudio
 
 # find device
