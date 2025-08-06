@@ -17,6 +17,7 @@ import torchaudio
 # find device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
+torch.manual_seed(41)
 
 #dataset class
 class CreateDataset(Dataset):
