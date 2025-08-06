@@ -167,3 +167,5 @@ def train(num_epochs, model, train_dataloader, valid_dataloader, criterion, opti
 
                 if (batch+1)%100 == 0:
                     print(f"Validation Epoch: {epoch+1}; Batch {batch+1} / {steps_per_epoch}; Loss: {loss.item():>4f}")
+
+        # add graphs using matplotlib as well as model saving
