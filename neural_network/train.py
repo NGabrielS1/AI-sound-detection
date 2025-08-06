@@ -151,7 +151,7 @@ class CNNLSTM(nn.Module):
 #create model, criterion, and optimizer
 model = CNNLSTM(input_len, hidden_size, num_classes, num_layers).to(device)
 # print(model)
-summary(model, (batchsize, 1, 64, 87), col_names=("input_size", "output_size", "num_params"))
+# summary(model, (batchsize, 1, 64, 87), col_names=("input_size", "output_size", "num_params"))
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr = learning_rate)
 
@@ -216,6 +216,6 @@ def train(num_epochs, model, train_dataloader, valid_dataloader, criterion, opti
      # save our NN model
     torch.save(model.state_dict(), "neural_network/CNNLSTM_VOICE_NN.pt")
 
-#run training
-# if __name__ == "__main__":
-#     train(num_epochs, model, train_dataloader, valid_dataloader, loss_function, optimizer)
+# run training
+if __name__ == "__main__":
+    train(num_epochs, model, train_dataloader, valid_dataloader, loss_function, optimizer)
