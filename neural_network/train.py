@@ -86,11 +86,11 @@ valid_data = CreateDataset("data/validation", device)
 train_dataloader = DataLoader(train_data, batch_size=batchsize)
 valid_dataloader = DataLoader(valid_data, batch_size=batchsize)
 
-# for batch in train_dataloader:
-#     x,y = batch
-#     print(x.shape)
-#     print(y.shape)
-#     break
+for batch in train_dataloader:
+    x,y = batch
+    print(x.shape)
+    print(y.shape)
+    break
 
 #continue later
 class CNNLSTM(nn.Module):
@@ -137,6 +137,6 @@ class CNNLSTM(nn.Module):
         out = self.output_layer(out[:, -1, :]) # flatten before output layer
         return out
 
-model = CNNLSTM(input_len, hidden_size, num_classes, num_layers)
-print(model)
-summary(model, (100, sequence_len, input_len))
+# model = CNNLSTM(input_len, hidden_size, num_classes, num_layers)
+# print(model)
+# summary(model, (100, sequence_len, input_len))
