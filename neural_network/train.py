@@ -156,6 +156,7 @@ optimizer = optim.Adam(model.parameters(), lr = learning_rate)
 #train function
 def train(num_epochs, model, train_dataloader, valid_dataloader, criterion, optimizer):
     steps_per_epoch = len(train_dataloader)
+    valid_steps_per_epoch = len(valid_dataloader)
 
     train_losses = []
     valid_losses = []
@@ -195,7 +196,7 @@ def train(num_epochs, model, train_dataloader, valid_dataloader, criterion, opti
                 epoch_loss.append(loss.item())
 
                 if (batch+1)%10 == 0:
-                    print(f"Validation Epoch: {epoch+1}; Batch {batch+1} / {steps_per_epoch}; Loss: {loss.item():>4f}")
+                    print(f"Validation Epoch: {epoch+1}; Batch {batch+1} / {valid_steps_per_epoch}; Loss: {loss.item():>4f}")
         
         #track valid loss
         valid_losses.append(mean(epoch_loss))
