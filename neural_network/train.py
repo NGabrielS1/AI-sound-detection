@@ -139,4 +139,4 @@ class CNNLSTM(nn.Module):
 
 model = CNNLSTM(input_len, hidden_size, num_classes, num_layers)
 print(model)
-summary(model, (100, 1, 64, 87))
+summary(model, (1, 64, 87))
