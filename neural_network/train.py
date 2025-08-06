@@ -83,7 +83,7 @@ hidden_size = 128
 num_layers = 2
 num_classes = 2
 num_epochs = 5
-learning_rate = 0.01
+learning_rate = 0.001
 
 # Creating datasets and dataloaders
 train_data = CreateDataset("data/training", device)
