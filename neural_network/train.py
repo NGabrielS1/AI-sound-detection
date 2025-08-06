@@ -7,7 +7,6 @@ from torch import nn, optim
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-from torchsummary import summary
 import torchaudio
 
 # find device
