@@ -149,6 +149,7 @@ def test(model, test_dataloader):
     acc = 0
     with torch.no_grad():
         for batch, (image, label) in enumerate(test_dataloader):
+            image, label = image.to(device), label.to(device)
             x = model(image)
             x = softmax(x)
             pred = torch.argmax(x, dim=1)
