@@ -138,7 +138,7 @@ class CNNLSTM(nn.Module):
 
 #create model and load weights
 model = CNNLSTM(input_len, hidden_size, num_classes, num_layers).to(device)
-model.load_state_dict(torch.load(("neural_network/CNNLSTM_VOICE_NN.pt"),map_location=torch.device('cpu')))
+model.load_state_dict(torch.load(("neural_network/CNNLSTM_VOICE_NN.pt"),map_location=torch.device(device)))
 
 #test function
 def test(model, test_dataloader):
