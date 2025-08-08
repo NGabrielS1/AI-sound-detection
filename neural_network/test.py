@@ -84,7 +84,7 @@ num_classes = 2
 
 # Creating datasets and dataloaders
 test_data = CreateDataset("data/testing", device)
-test_dataloader = DataLoader(test_data, batch_size=batchsize, shuffle=True)
+test_dataloader = DataLoader(test_data, batch_size=batchsize, shuffle=False)
 
 #CNN-LSTM model
 class CNNLSTM(nn.Module):
