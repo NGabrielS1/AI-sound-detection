@@ -1,6 +1,7 @@
 import os
 import time
 import torch
+import random
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -18,6 +19,7 @@ import torchaudio
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 torch.manual_seed(41)
+random.seed(41)
 
 #dataset class
 class CreateDataset(Dataset):
