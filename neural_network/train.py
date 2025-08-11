@@ -90,7 +90,7 @@ learning_rate = 0.001
 
 # Creating datasets and dataloaders
 dataset = CreateDataset("data", device)
-train_data, valid_data, test_data = random_split(dataset, [7148, 893, 893])
+train_data, valid_data, test_data = random_split(dataset, [14296, 1787, 1787])
 
 train_dataloader = DataLoader(train_data, batch_size=batchsize, shuffle=True)
 valid_dataloader = DataLoader(valid_data, batch_size=batchsize, shuffle=False)
