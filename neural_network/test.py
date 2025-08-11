@@ -7,7 +7,7 @@ from statistics import mean, median
 
 from torch import nn, optim
 from torch.utils.data import Dataset
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
@@ -85,7 +85,8 @@ num_layers = 2
 num_classes = 2
 
 # Creating datasets and dataloaders
-test_data = CreateDataset("data/testing", device)
+dataset = CreateDataset("data", device)
+train_data, valid_data, test_data = random_split(dataset, [7148, 893, 893])
 test_dataloader = DataLoader(test_data, batch_size=batchsize, shuffle=False)
 
 #CNN-LSTM model

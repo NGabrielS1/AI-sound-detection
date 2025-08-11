@@ -9,7 +9,7 @@ from statistics import mean, median
 
 from torch import nn, optim
 from torch.utils.data import Dataset
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
 from torchinfo import summary
 
@@ -89,8 +89,8 @@ num_epochs = 10
 learning_rate = 0.001
 
 # Creating datasets and dataloaders
-train_data = CreateDataset("data/training", device)
-valid_data = CreateDataset("data/validation", device)
+dataset = CreateDataset("data", device)
+train_data, valid_data, test_data = random_split(dataset, [7148, 893, 893])
 
 train_dataloader = DataLoader(train_data, batch_size=batchsize, shuffle=True)
 valid_dataloader = DataLoader(valid_data, batch_size=batchsize, shuffle=False)
