@@ -2,9 +2,6 @@ import os
 import time
 import torch
 import random
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 from statistics import mean, median
 
 from torch import nn, optim
