@@ -206,6 +206,7 @@ def cross_validation(folds, num_epochs, batchsize):
     acc, pres, f1, recall = [], [], [], []
 
     for i in range(k):
+        print("Fold:", str(i+1))
         train_folds = folds.copy()
         test_fold = folds[i]
         train_folds.pop(i)
