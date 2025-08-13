@@ -194,7 +194,7 @@ def test(model, test_fold, fold_num):
 
     #download confusion matrix
     ConfusionMatrixDisplay(cm, display_labels=["Fake", "Real"]).plot()
-    plt.savefig(f"cross_valid/Fold {fold_num} CM")
+    plt.savefig(f"cross_valid/Fold_{fold_num}_CM")
     plt.close()
 
     return acc, pres, f1, recall
