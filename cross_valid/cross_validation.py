@@ -196,7 +196,7 @@ def test(model, test_fold):
     acc = (TP+TN)/(TP+TN+FP+FN) * 100
     pres = (TP)/(TP+FP) * 100
     recall = (TP)/(TP+FN) * 100
-    f1 = (2*pres*recall)/(pres+recall) * 100
+    f1 = (2*pres*recall)/(pres+recall)
 
     return acc, pres, f1, recall
     
