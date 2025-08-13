@@ -3,6 +3,7 @@ import time
 import torch
 import random
 import numpy as np
+import matplotlib.pyplot as plt
 from statistics import mean, median
 
 from torch import nn, optim
@@ -10,7 +11,7 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader, Subset
 from torchvision import datasets, transforms
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 import torchaudio
 
@@ -164,7 +165,7 @@ def train(num_epochs, batchsize, model, train_folds, criterion, optimizer, fold_
                 print(f"Fold {fold_num} Epoch: {epoch+1}; Batch {batch+1} / {steps_per_epoch}; Loss: {loss.item():>4f}")
     print(f"Training Took: {(time.time()-start_time)/60} minutes!")
 
-def test(model, test_fold):
+def test(model, test_fold, fold_num):
     dataloader = DataLoader(test_fold, batch_size=1, shuffle=False)
 
     y_true = []
@@ -191,6 +192,10 @@ def test(model, test_fold):
     recall = (TP)/(TP+FN) * 100
     f1 = (2*pres*recall)/(pres+recall)
 
+    #download confusion matrix
+    ConfusionMatrixDisplay(cm, display_labels=["Fake", "Real"]).plot()
+    plt.savefig(f"Fold {fold_num} CM")
+
     return acc, pres, f1, recall
     
 
@@ -215,7 +220,7 @@ def cross_validation(data, labels, num_epochs, batchsize):
         train(num_epochs, batchsize, model, train_folds, loss_function, optimizer, i+1)
 
         #test
-        a, p, f, r = test(model, test_fold)
+        a, p, f, r = test(model, test_fold, i+1)
         acc.append(a)
         pres.append(p)
         f1.append(f)
