@@ -2,13 +2,14 @@ import os
 import time
 import torch
 import random
+import numpy as np
 from statistics import mean, median
 
 from torch import nn, optim
 from torch.utils.data import Dataset
-from torch.utils.data import ConcatDataset
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, Subset
 from torchvision import datasets, transforms
+from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import confusion_matrix
 
 import torchaudio
@@ -18,6 +19,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 torch.manual_seed(41)
 random.seed(41)
+np.random.seed(41)
 
 #dataset class
 class CreateDataset(Dataset):
@@ -86,17 +88,9 @@ num_classes = 2
 num_epochs = 10
 learning_rate = 0.001
 
-# Creating folds (5 folds)
+# Creating dataset and get labels (unshuffled)
 dataset = CreateDataset("data", device)
-fold_one, fold_two, fold_three, fold_four, fold_five = random_split(dataset, [3574, 3574, 3574, 3574, 3574])
-folds = [fold_one, fold_two, fold_three, fold_four, fold_five]
-
-
-# for batch in train_dataloader:
-#     x,y = batch
-#     print(x.shape)
-#     print(y.shape)
-#     break
+labels = np.array([dataset[i][1] for i in range(len(dataset))])
 
 #CNN-LSTM model
 class CNNLSTM(nn.Module):
@@ -148,9 +142,8 @@ class CNNLSTM(nn.Module):
         out = self.output_layer(out[:, -1, :]) # flatten before output layer
         return out
 
-def train(num_epochs, batchsize, model, train_folds, criterion, optimizer):
-    data = ConcatDataset(train_folds)
-    dataloader = DataLoader(data, batch_size=batchsize, shuffle=True)
+def train(num_epochs, batchsize, model, train_folds, criterion, optimizer, fold_num):
+    dataloader = DataLoader(train_folds, batch_size=batchsize, shuffle=True)
 
     steps_per_epoch = len(dataloader)
     start_time = time.time()
@@ -168,7 +161,7 @@ def train(num_epochs, batchsize, model, train_folds, criterion, optimizer):
             optimizer.step() #optimize
 
             if (batch+1)%10 == 0:
-                print(f"Training Epoch: {epoch+1}; Batch {batch+1} / {steps_per_epoch}; Loss: {loss.item():>4f}")
+                print(f"Fold {fold_num} Epoch: {epoch+1}; Batch {batch+1} / {steps_per_epoch}; Loss: {loss.item():>4f}")
     print(f"Training Took: {(time.time()-start_time)/60} minutes!")
 
 def test(model, test_fold):
@@ -201,15 +194,17 @@ def test(model, test_fold):
     return acc, pres, f1, recall
     
 
-def cross_validation(folds, num_epochs, batchsize):
-    k = len(folds)
+def cross_validation(data, labels, num_epochs, batchsize):
+    k = 5
     acc, pres, f1, recall = [], [], [], []
 
-    for i in range(k):
+    #create Stratified K-Folds
+    skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=1)
+
+    for i, (train_index, test_index) in enumerate(skf.split(np.zeros(len(data)), labels)):
         print("Fold:", str(i+1))
-        train_folds = folds.copy()
-        test_fold = folds[i]
-        train_folds.pop(i)
+        train_folds = Subset(data, train_index)
+        test_fold = Subset(data, test_index)
 
         #create model, criterion, and optimizer
         model = CNNLSTM(input_len, hidden_size, num_classes, num_layers).to(device)
@@ -217,7 +212,7 @@ def cross_validation(folds, num_epochs, batchsize):
         optimizer = optim.Adam(model.parameters(), lr = learning_rate)
 
         #train
-        train(num_epochs, batchsize, model, train_folds, loss_function, optimizer)
+        train(num_epochs, batchsize, model, train_folds, loss_function, optimizer, i+1)
 
         #test
         a, p, f, r = test(model, test_fold)
@@ -230,4 +225,4 @@ def cross_validation(folds, num_epochs, batchsize):
     print(f"Average Accuracy: {acc}, Precision {pres}, F1-Score: {f1}, Recall: {recall}")
 
 if __name__ == "__main__":
-    cross_validation(folds, num_epochs, batchsize)
+    cross_validation(dataset, labels, num_epochs, batchsize)
