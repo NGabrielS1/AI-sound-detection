@@ -180,7 +180,7 @@ def train(num_epochs, model, dataloader, criterion, optimizer):
     print(f"Training Took: {(time.time()-start_time)/60} minutes!")
 
      # save our NN model
-    torch.save(model.state_dict(), "neural_network/CNNLSTM_VOICE_CV.pt")
+    torch.save(model.state_dict(), "cross_valid/CNNLSTM_VOICE_CV.pt")
 
 # run training
 if __name__ == "__main__":
