@@ -67,3 +67,18 @@ class App(ctk.CTk):
     #variables
     file = 0
     files = []
+    width = 1440
+    height = 1024
+
+    def __init__(self):
+        super().__init__()
+
+        # window settings
+        self.title("VoiceCheck: Cutting-edge AI voice detection")
+        self.geometry(f"{self.width}x{self.height}")
+        self.resizable(0, 0)
+
+# Run application
+if __name__ == "__main__":
+    # create app
+    app = App()
