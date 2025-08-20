@@ -6,6 +6,7 @@ import random
 import customtkinter as ctk
 import matplotlib.pyplot as plt
 from customtkinter import filedialog
+from PIL import Image, ImageFont, ImageDraw
 
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
@@ -78,6 +79,9 @@ class App(ctk.CTk):
         self.geometry(f"{self.width}x{self.height}")
         self.resizable(0, 0)
         self.configure(fg_color='#f5f5f7')
+
+        #images
+        self.landing_logo = ctk.CTkImage(Image.open("assets/VoiceCheck.png"), size=(675, 118))
 
 # Run application
 if __name__ == "__main__":
