@@ -67,8 +67,8 @@ class App(ctk.CTk):
     #variables
     file = 0
     files = []
-    width = 1440
-    height = 1024
+    width = 720
+    height = 512
 
     def __init__(self):
         super().__init__()
