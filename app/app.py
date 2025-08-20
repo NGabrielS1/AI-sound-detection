@@ -82,3 +82,5 @@ class App(ctk.CTk):
 if __name__ == "__main__":
     # create app
     app = App()
+    
+    app.mainloop()
