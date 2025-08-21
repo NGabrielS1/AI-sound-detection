@@ -82,20 +82,33 @@ class App(ctk.CTk):
         current_path = os.path.dirname(os.path.realpath(__file__))
 
         #images
-        self.landing_logo = ctk.CTkImage(Image.open(current_path+"/assets/VoiceCheck.png"), size=(506.25, 88.5))
+        self.landing_logo = ctk.CTkImage(Image.open(current_path+"/assets/VoiceCheck.png"), size=(405, 70.8))
+        self.info_img = ctk.CTkImage(Image.open(current_path+"/assets/info.png"), size=(41.4, 41.4))
 
         #fonts
-        self.REGULAR = current_path+"/assets/Inter_18pt-Regular.ttf"
-        self.ITALIC = current_path+"/assets/Inter_18pt-Italic.ttf"
-        self.BOLD = current_path+"/assets/Inter_18pt-Bold.ttf"
-        self.SEMIBOLD = current_path+"/assets/Inter_18pt-SemiBold.ttf"
+        self.REGULAR = current_path+"/assets/Inter_28pt-Regular.ttf"
+        self.ITALIC = current_path+"/assets/Inter_28pt-Italic.ttf"
+        self.BOLD = current_path+"/assets/Inter_28pt-Bold.ttf"
+        self.SEMIBOLD = current_path+"/assets/Inter_28pt-SemiBold.ttf"
 
         #landing page
         self.big_logo = ctk.CTkLabel(master=self, image=self.landing_logo, fg_color="transparent", text=None)
-        self.big_logo.place(x=self.width//2, y=50, anchor="center")
+        self.big_logo.place(x=self.width//2, y=91.8, anchor="center")
 
         self.tag_line = ctk.CTkLabel(master=self, image=self.custom_text("Determine if your audio is human or AI in seconds.", self.ITALIC, "#000000", 28, "#f5f5f7"), text=None, fg_color="transparent")
-        self.tag_line.place(x=self.width//2, y=120, anchor="center")
+        self.tag_line.place(x=self.width//2, y=180, anchor="center")
+
+        self.load_btn = ctk.CTkButton(master=self, image=self.custom_text("Load Audio Files", self.SEMIBOLD, "#ffffff", 28, "#007aff"), text=None, fg_color="#007aff", hover_color="#005FCC", width=204, height=97.8, corner_radius=27.6)
+        self.load_btn.bind("<Enter>", lambda event, button=self.load_btn: button.configure(image=self.custom_text("Load Audio Files", self.SEMIBOLD, "#ffffff", 28, "#005FCC"), fg_color="#005FCC"))
+        self.load_btn.bind("<Leave>", lambda event, button=self.load_btn: button.configure(image=self.custom_text("Load Audio Files", self.SEMIBOLD, "#ffffff", 28, "#007aff"), fg_color="#007aff"))
+        self.load_btn.place(x=self.width//2, y=334.2, anchor="center")
+
+        self.notice_text = ctk.CTkLabel(master=self, image=self.custom_text("*Supported: .wav, .ogg, .mp3", self.REGULAR, "#000000", 29, "#f5f5f7"), fg_color="transparent", text=None)
+        self.notice_text.place(x=61.2, y=511.8, anchor="nw")
+
+        self.big_logo = ctk.CTkButton(master=self, image=self.info_img, fg_color="transparent", hover_color="#f5f5f7", text=None, width=41.4, height=41.4)
+        self.big_logo.place(x=802.8, y=511.8, anchor="ne")
+
     
     def custom_text(self, text, font, color, fontsize, bgcolor, anchor="lt"):
         #load font
