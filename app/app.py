@@ -106,8 +106,8 @@ class App(ctk.CTk):
         self.notice_text = ctk.CTkLabel(master=self, image=self.custom_text("*Supported: .wav, .ogg, .mp3", self.REGULAR, "#000000", 29, "#f5f5f7"), fg_color="transparent", text=None)
         self.notice_text.place(x=61.2, y=511.8, anchor="nw")
 
-        self.big_logo = ctk.CTkButton(master=self, image=self.info_img, fg_color="transparent", hover_color="#f5f5f7", text=None, width=41.4, height=41.4)
-        self.big_logo.place(x=802.8, y=511.8, anchor="ne")
+        self.info_btn = ctk.CTkButton(master=self, image=self.info_img, fg_color="transparent", hover_color="#f5f5f7", text=None, width=41.4, height=41.4)
+        self.info_btn.place(x=802.8, y=511.8, anchor="ne")
 
     
     def custom_text(self, text, font, color, fontsize, bgcolor, anchor="lt"):
