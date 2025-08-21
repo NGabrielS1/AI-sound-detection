@@ -61,6 +61,7 @@ class CreateDataset(Dataset):
             signal = torch.nn.functional.pad(signal, last_dim_padding)
         return signal
 
+#app window
 class App(ctk.CTk):
     # find device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -106,7 +107,7 @@ class App(ctk.CTk):
         self.notice_text = ctk.CTkLabel(master=self, image=self.custom_text("*Supported: .wav, .ogg, .mp3", self.REGULAR, "#000000", 29, "#f5f5f7"), fg_color="transparent", text=None)
         self.notice_text.place(x=61.2, y=511.8, anchor="nw")
 
-        self.info_btn = ctk.CTkButton(master=self, image=self.info_img, fg_color="transparent", hover_color="#f5f5f7", text=None, width=41.4, height=41.4)
+        self.info_btn = ctk.CTkButton(master=self, image=self.info_img, fg_color="transparent", hover_color="#f5f5f7", text=None, width=41.4, height=41.4, command=self.create_window)
         self.info_btn.place(x=802.8, y=511.8, anchor="ne")
 
     
@@ -128,7 +129,21 @@ class App(ctk.CTk):
         draw.text(xy=(5, 5), text=text, font=font, fill=color, anchor=anchor)
         image = ctk.CTkImage(image, size=(width,height))
         return image
+    
+    def create_window(self):
+        info = info_window(self)
 
+#info window
+class info_window(ctk.CTkToplevel):
+    width = 500
+    height = 300
+
+    def __init__(self, master):
+        super().__init__(master=master)
+        self.title("Information")
+        self.geometry(f"{self.width}x{self.height}")
+        self.resizable(0, 0)
+        self.configure(fg_color='#f5f5f7')
 
 # Run application
 if __name__ == "__main__":
