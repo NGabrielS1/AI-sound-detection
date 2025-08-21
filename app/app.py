@@ -79,9 +79,43 @@ class App(ctk.CTk):
         self.geometry(f"{self.width}x{self.height}")
         self.resizable(0, 0)
         self.configure(fg_color='#f5f5f7')
+        current_path = os.path.dirname(os.path.realpath(__file__))
 
         #images
-        self.landing_logo = ctk.CTkImage(Image.open("assets/VoiceCheck.png"), size=(675, 118))
+        self.landing_logo = ctk.CTkImage(Image.open(current_path+"/assets/VoiceCheck.png"), size=(506.25, 88.5))
+
+        #fonts
+        self.REGULAR = current_path+"/assets/Inter_18pt-Regular.ttf"
+        self.ITALIC = current_path+"/assets/Inter_18pt-Italic.ttf"
+        self.BOLD = current_path+"/assets/Inter_18pt-Bold.ttf"
+        self.SEMIBOLD = current_path+"/assets/Inter_18pt-SemiBold.ttf"
+
+        #landing page
+        self.big_logo = ctk.CTkLabel(master=self, image=self.landing_logo, fg_color="transparent", text=None)
+        self.big_logo.place(x=self.width//2, y=50, anchor="center")
+
+        self.tag_line = ctk.CTkLabel(master=self, image=self.custom_text("Determine if your audio is human or AI in seconds.", self.ITALIC, "#000000", 28, "#f5f5f7"), text=None, fg_color="transparent")
+        self.tag_line.place(x=self.width//2, y=120, anchor="center")
+    
+    def custom_text(self, text, font, color, fontsize, bgcolor, anchor="lt"):
+        #load font
+        font = ImageFont.truetype(font=font, size=fontsize)
+
+        #get size
+        dummy_image = Image.new(mode="RGBA", size=(1, 1))
+        dummy_draw = ImageDraw.Draw(dummy_image)
+        left, top, right, bottom = dummy_draw.textbbox((0, 0), text, font=font, anchor=anchor)
+        width = right - left + 10 #10px padding
+        height = bottom - top + 10
+
+        #create img
+        image = Image.new(mode="RGBA", size=(width, height), color=bgcolor)
+        draw = ImageDraw.Draw(image)
+        draw.fontmode = "L"
+        draw.text(xy=(5, 5), text=text, font=font, fill=color, anchor=anchor)
+        image = ctk.CTkImage(image, size=(width,height))
+        return image
+
 
 # Run application
 if __name__ == "__main__":
