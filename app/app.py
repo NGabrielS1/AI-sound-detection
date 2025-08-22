@@ -118,17 +118,17 @@ class App(ctk.CTk):
         #get size
         dummy_image = Image.new(mode="RGBA", size=(1, 1))
         dummy_draw = ImageDraw.Draw(dummy_image)
-        left, top, right, bottom = dummy_draw.textbbox((0, 0), text, font=font, anchor=anchor)
+        text = text.split("\n") #seperate by newline (enter)
+        left, top, right, bottom = dummy_draw.textbbox((0, 0), text=max(text, key=len), font=font, anchor=anchor)
         width = right - left + 10 #10px padding
-        height = bottom - top + 10
+        height = (bottom - top + 10) * len(text)
 
         #create img
         image = Image.new(mode="RGBA", size=(width, height), color=bgcolor)
         draw = ImageDraw.Draw(image)
         draw.fontmode = "L"
-        text = text.split("\n") #seperate by newline (enter)
         for i, line in enumerate(text):
-            draw.text(xy=(5, 5+height*i), text=line, font=font, fill=color, anchor=anchor)
+            draw.text(xy=(5, 5+height/len(text)*i), text=line, font=font, fill=color, anchor=anchor)
         image = ctk.CTkImage(image, size=(width,height))
         return image
     
@@ -147,7 +147,22 @@ class info_window(ctk.CTkToplevel):
         self.resizable(0, 0)
         self.configure(fg_color='#f5f5f7')
 
-        #text
+        #widgets
+        self.what_header = ctk.CTkLabel(master=self, image=master.custom_text("What is VoiceCheck", bold_font, "#000000", 25.2, "#f5f5f7"), text=None, fg_color="transparent")
+        self.what_header.place(x=18.2, y=10, anchor="nw")
+
+        self.what_text = ctk.CTkLabel(master=self, image=master.custom_text(
+            "VoiceCheck analyzes audio files to determine whether the \nvoice is human or AI-generated. It uses a deep learning \nmodel trained on real and synthetic speech patterns to make \naccurate classifications. Your files never leave your computer. \nAI analysis happens locally using on-device AI."
+            , regular_font, "#000000", 16.8, "#f5f5f7"), text=None, fg_color="transparent")
+        self.what_text.place(x=18.2, y=45.6, anchor="nw")
+
+        self.how_header = ctk.CTkLabel(master=self, image=master.custom_text("How to use VoiceCheck", bold_font, "#000000", 25.2, "#f5f5f7"), text=None, fg_color="transparent")
+        self.how_header.place(x=18.2, y=180.6, anchor="nw")
+
+        self.how_text = ctk.CTkLabel(master=self, image=master.custom_text(
+            "Simply click the “Load Audio Files” button and choose files \nyou want. Navigate between files using “previous” and “next” \nbuttons, or simply choose files using the sidebar."
+            , regular_font, "#000000", 16.8, "#f5f5f7"), text=None, fg_color="transparent")
+        self.how_text.place(x=18.2, y=216.2, anchor="nw")
 
 
 # Run application
