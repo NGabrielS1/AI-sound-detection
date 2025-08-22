@@ -126,24 +126,29 @@ class App(ctk.CTk):
         image = Image.new(mode="RGBA", size=(width, height), color=bgcolor)
         draw = ImageDraw.Draw(image)
         draw.fontmode = "L"
-        draw.text(xy=(5, 5), text=text, font=font, fill=color, anchor=anchor)
+        text = text.split("\n") #seperate by newline (enter)
+        for i, line in enumerate(text):
+            draw.text(xy=(5, 5+height*i), text=line, font=font, fill=color, anchor=anchor)
         image = ctk.CTkImage(image, size=(width,height))
         return image
     
     def create_window(self):
-        info = info_window(self)
+        info = info_window(self, self.SEMIBOLD, self.REGULAR)
 
 #info window
 class info_window(ctk.CTkToplevel):
     width = 500
     height = 300
 
-    def __init__(self, master):
+    def __init__(self, master, bold_font, regular_font):
         super().__init__(master=master)
         self.title("Information")
         self.geometry(f"{self.width}x{self.height}")
         self.resizable(0, 0)
         self.configure(fg_color='#f5f5f7')
+
+        #text
+
 
 # Run application
 if __name__ == "__main__":
