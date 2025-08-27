@@ -84,6 +84,7 @@ class App(ctk.CTk):
 
         #images
         self.landing_logo = ctk.CTkImage(Image.open(current_path+"/assets/VoiceCheck.png"), size=(405, 70.8))
+        self.header_logo = ctk.CTkImage(Image.open(current_path+"/assets/VoiceCheck.png"), size=(363, 67.2))
         self.info_img = ctk.CTkImage(Image.open(current_path+"/assets/info.png"), size=(41.4, 41.4))
 
         #fonts
@@ -109,6 +110,21 @@ class App(ctk.CTk):
 
         self.info_btn = ctk.CTkButton(master=self, image=self.info_img, fg_color="transparent", hover_color="#f5f5f7", text=None, width=41.4, height=41.4, command=self.create_window)
         self.info_btn.place(x=802.8, y=511.8, anchor="ne")
+
+        #analysis page
+        self.header = ctk.CTkFrame(self, height=72, width=self.width, fg_color="#ffffff", corner_radius=0)
+        self.sidebar = ctk.CTkFrame(self, height=542.4, width=350, fg_color="#f9fafb", corner_radius=0)
+        self.content = ctk.CTkFrame(self, height=542.4, width=514, fg_color="#000000", corner_radius=0)
+
+        self.file_count = ctk.CTkLabel(self.header, image=self.custom_text("Files Loaded: 0", self.SEMIBOLD, "#4a4a4a", 42, "#ffffff"), height=72, text=None, fg_color="transparent")
+        self.small_logo = ctk.CTkLabel(self.header, image=self.header_logo, width=363, height=72, text=None, fg_color="transparent")
+
+        self.sound_list = ctk.CTkScrollableFrame(self.sidebar, width=350, height=301.2, fg_color="#f9fafb", corner_radius=0)
+        self.upload_btn = ctk.CTkButton(self.sidebar, image=self.custom_text("Upload", self.SEMIBOLD, "#ffffff", 32, "#007aff"), text=None, fg_color="#007aff", hover_color="#005FCC", width=174, height=75, corner_radius=27.6 ,command=self.upload_files)
+        self.upload_btn.bind("<Enter>", lambda event, button=self.upload_btn: button.configure(image=self.custom_text("Upload", self.SEMIBOLD, "#ffffff", 32, "#005FCC"), fg_color="#005FCC"))
+        self.upload_btn.bind("<Leave>", lambda event, button=self.upload_btn: button.configure(image=self.custom_text("Upload", self.SEMIBOLD, "#ffffff", 32, "#007aff"), fg_color="#007aff"))
+
+        self.next_page()
 
     
     def custom_text(self, text, font, color, fontsize, bgcolor, anchor="lt"):
@@ -142,6 +158,29 @@ class App(ctk.CTk):
         self.load_btn.place_forget()
         self.notice_text.place_forget()
         self.info_btn.place_forget()
+
+        self.grid_rowconfigure(0, weight=0)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_columnconfigure(0, weight=0)
+        self.grid_columnconfigure(1, weight=1)
+
+        self.header.grid(row=0, column=0, columnspan=2, sticky="nsew")
+        self.sidebar.grid(row=1, column=0, sticky="nsew")
+        self.content.grid(row=1, column=1, sticky="nsew")
+
+        self.header.grid_columnconfigure(0, weight=0)
+        self.header.grid_columnconfigure(1, weight=1)
+        self.header.grid_columnconfigure(2, weight=0)
+        self.file_count.grid(row=0, column=0, sticky="nsw")
+        self.small_logo.grid(row=0, column=2, sticky="nse")
+
+        self.sidebar.grid_columnconfigure(0, weight=0)
+        self.sidebar.rowconfigure(0, weight=0)
+        self.sidebar.rowconfigure(1, weight=1)
+        self.sidebar.rowconfigure(2, weight=0)
+        self.sidebar.rowconfigure(3, weight=1)
+        self.sound_list.grid(row=0, column=0)
+        self.upload_btn.grid(row=2, column=0)
     
     def upload_files(self):
         self.files = filedialog.askopenfilename(filetypes=[("Audio Files", "*.wav *.ogg *.mp3")])
