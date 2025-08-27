@@ -99,7 +99,7 @@ class App(ctk.CTk):
         self.tag_line = ctk.CTkLabel(master=self, image=self.custom_text("Determine if your audio is human or AI in seconds.", self.ITALIC, "#000000", 28, "#f5f5f7"), text=None, fg_color="transparent")
         self.tag_line.place(x=self.width//2, y=180, anchor="center")
 
-        self.load_btn = ctk.CTkButton(master=self, image=self.custom_text("Load Audio Files", self.SEMIBOLD, "#ffffff", 28, "#007aff"), text=None, fg_color="#007aff", hover_color="#005FCC", width=204, height=97.8, corner_radius=27.6)
+        self.load_btn = ctk.CTkButton(master=self, image=self.custom_text("Load Audio Files", self.SEMIBOLD, "#ffffff", 28, "#007aff"), text=None, fg_color="#007aff", hover_color="#005FCC", width=204, height=97.8, corner_radius=27.6 ,command=self.next_page)
         self.load_btn.bind("<Enter>", lambda event, button=self.load_btn: button.configure(image=self.custom_text("Load Audio Files", self.SEMIBOLD, "#ffffff", 28, "#005FCC"), fg_color="#005FCC"))
         self.load_btn.bind("<Leave>", lambda event, button=self.load_btn: button.configure(image=self.custom_text("Load Audio Files", self.SEMIBOLD, "#ffffff", 28, "#007aff"), fg_color="#007aff"))
         self.load_btn.place(x=self.width//2, y=334.2, anchor="center")
@@ -134,6 +134,17 @@ class App(ctk.CTk):
     
     def create_window(self):
         info = info_window(self, self.SEMIBOLD, self.REGULAR)
+    
+    def next_page(self):
+        self.upload_files()
+        self.big_logo.place_forget()
+        self.tag_line.place_forget()
+        self.load_btn.place_forget()
+        self.notice_text.place_forget()
+        self.info_btn.place_forget()
+    
+    def upload_files(self):
+        self.files = filedialog.askopenfilename(filetypes=[("Audio Files", "*.wav *.ogg *.mp3")])
 
 #info window
 class info_window(ctk.CTkToplevel):
