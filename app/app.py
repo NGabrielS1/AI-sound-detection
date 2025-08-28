@@ -67,7 +67,6 @@ class App(ctk.CTk):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     #variables
-    file = 0
     files = []
     width = 864
     height = 614.4
@@ -119,7 +118,7 @@ class App(ctk.CTk):
         self.file_count = ctk.CTkLabel(self.header, image=self.custom_text("Files Loaded: 0", self.SEMIBOLD, "#4a4a4a", 42, "#ffffff"), height=72, text=None, fg_color="transparent")
         self.small_logo = ctk.CTkLabel(self.header, image=self.header_logo, width=363, height=72, text=None, fg_color="transparent")
 
-        self.sound_list = ctk.CTkScrollableFrame(self.sidebar, width=350, height=301.2, fg_color="#f9fafb", corner_radius=0)
+        self.sound_list = CTKListBox(self.sidebar, width=350, height=301.2, fg_color="#f9fafb", corner_radius=0)
         self.upload_btn = ctk.CTkButton(self.sidebar, image=self.custom_text("Upload", self.SEMIBOLD, "#ffffff", 32, "#007aff"), text=None, fg_color="#007aff", hover_color="#005FCC", width=174, height=75, corner_radius=27.6 ,command=self.upload_files)
         self.upload_btn.bind("<Enter>", lambda event, button=self.upload_btn: button.configure(image=self.custom_text("Upload", self.SEMIBOLD, "#ffffff", 32, "#005FCC"), fg_color="#005FCC"))
         self.upload_btn.bind("<Leave>", lambda event, button=self.upload_btn: button.configure(image=self.custom_text("Upload", self.SEMIBOLD, "#ffffff", 32, "#007aff"), fg_color="#007aff"))
@@ -175,15 +174,20 @@ class App(ctk.CTk):
         self.small_logo.grid(row=0, column=2, sticky="nse")
 
         self.sidebar.grid_columnconfigure(0, weight=0)
-        self.sidebar.rowconfigure(0, weight=0)
-        self.sidebar.rowconfigure(1, weight=1)
-        self.sidebar.rowconfigure(2, weight=0)
-        self.sidebar.rowconfigure(3, weight=1)
-        self.sound_list.grid(row=0, column=0)
-        self.upload_btn.grid(row=2, column=0)
+        self.sidebar.rowconfigure(0, weight=1)
+        self.sidebar.rowconfigure(1, weight=0)
+        self.sidebar.rowconfigure(2, weight=1)
+        self.sidebar.rowconfigure(3, weight=0)
+        self.sidebar.rowconfigure(4, weight=1)
+        self.sound_list.grid(row=1, column=0)
+        self.upload_btn.grid(row=3, column=0)
     
     def upload_files(self):
-        self.files = filedialog.askopenfilename(filetypes=[("Audio Files", "*.wav *.ogg *.mp3")])
+        self.files = filedialog.askopenfilenames(filetypes=[("Audio Files", "*.wav *.ogg *.mp3")])
+        self.sound_list.load_items(values=self.files)
+        self.file_count.configure(image=self.custom_text(f"Files Loaded: {len(self.files)}", self.SEMIBOLD, "#4a4a4a", 42, "#ffffff"))
+
+        self.dataset = CreateDataset(self.files, self.device)
 
 #info window
 class info_window(ctk.CTkToplevel):
@@ -213,6 +217,35 @@ class info_window(ctk.CTkToplevel):
             "Simply click the “Load Audio Files” button and choose files \nyou want. Navigate between files using “previous” and “next” \nbuttons, or simply choose files using the sidebar."
             , regular_font, "#000000", 16.8, "#f5f5f7"), text=None, fg_color="transparent")
         self.how_text.place(x=18.2, y=216.2, anchor="nw")
+
+#listbox
+
+class CTKListBox(ctk.CTkScrollableFrame):
+    def __init__(self, master, width=350, height=301.2, fg_color="#f9fafb", corner_radius=0):
+        super().__init__(master=master, width=width, height=height, fg_color=fg_color, corner_radius=corner_radius)
+        self.master = master
+
+        self.file_names = []
+        self.index_labels = []
+        self.indicators = []
+        self.columnconfigure(0, weight=0)
+        self.columnconfigure(1, weight=0)
+        self.columnconfigure(2, weight=2)
+    
+    def load_items(self, values):
+        for widget in self.file_names: widget.grid_forget()
+        for widget in self.indicators: widget.grid_forget()
+        self.file_names, self.indicators = [], []
+        values = [value.split("/")[-1] for value in values]
+        for i, value in enumerate(values):
+            indicator = ctk.CTkLabel(self, width=91, height=27, text=None, fg_color="transparent")
+            widget = ctk.CTkButton(self, height=27, image=self.master.master.custom_text(f"{i+1:3d}. {value}", self.master.master.REGULAR, "#000000", 28, "#f9fafb"), text=None, fg_color="transparent", hover=False)
+            self.indicators.append(indicator)
+            self.file_names.append(widget)
+            indicator.grid(row=i, column=0)
+            widget.grid(row=i, column=1)
+            
+            
 
 
 # Run application
