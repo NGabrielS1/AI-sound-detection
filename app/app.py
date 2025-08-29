@@ -30,6 +30,38 @@ class CreateDataset(Dataset):
         self.filenames = sounds
         self.transform = torchaudio.transforms.MelSpectrogram(sample_rate=self.TARGET_SAMPLE_RATE, n_fft=1024, hop_length=512, n_mels=64)
         self.img_transform = torchaudio.transforms.AmplitudeToDB(stype='magnitude', top_db=100)
+
+        self.signals = []
+        self.images = []
+
+        for audio_path in self.filenames:
+            signal, sr = torchaudio.load(audio_path) #get audio signal & sample rate
+            signal = self._resample_if_necessary(signal, sr)
+            if signal.shape[0] > 1: signal = torch.mean(signal, dim=0, keepdim=True) #change channels
+            if signal.shape[1] > self.NUM_SAMPLES: signal = signal[:, :self.NUM_SAMPLES] #cut signal
+            signal = self._right_pad_if_necessary(signal) #pad signal
+            signal = self.transform(signal)
+
+            # create image
+            image = self.img_transform(signal)
+            plt.imshow(image.squeeze(0).squeeze(0), aspect="auto", origin="lower", cmap="magma")
+            plt.colorbar(label="dB")
+            plt.ylabel("Freq", fontsize=14)
+            plt.xlabel("Frame", fontsize=14)
+
+            # change to PIL img
+            with io.BytesIO() as f:
+                plt.savefig(f, format="png", dpi=300, bbox_inches='tight')
+                f.seek(0)
+                image = Image.open(f).copy()
+            plt.clf()
+            plt.close('all')
+            image = image.convert("RGB")
+            image = ctk.CTkImage(image, size=(363, 235.2))
+
+            self.signals.append(signal)
+            self.images.append(image)
+
     
     # get length of data
     def __len__(self):
@@ -37,30 +69,8 @@ class CreateDataset(Dataset):
     
     # get item
     def __getitem__(self, index):
-        # get audio path
-        audio_path = self.filenames[index]
-
-        signal, sr = torchaudio.load(audio_path) #get audio signal & sample rate
-        signal = self._resample_if_necessary(signal, sr)
-        if signal.shape[0] > 1: signal = torch.mean(signal, dim=0, keepdim=True) #change channels
-        if signal.shape[1] > self.NUM_SAMPLES: signal = signal[:, :self.NUM_SAMPLES] #cut signal
-        signal = self._right_pad_if_necessary(signal) #pad signal
-        signal = self.transform(signal)
-
-        # create image
-        image = self.img_transform(signal)
-        plt.imshow(image.squeeze(0).squeeze(0), aspect="auto", origin="lower", cmap="magma")
-        plt.colorbar(label="dB")
-        plt.ylabel("Freq", fontsize=14)
-        plt.xlabel("Frame", fontsize=14)
-
-        # change to PIL img
-        with io.BytesIO() as f:
-            plt.savefig(f, format="png", dpi=300, bbox_inches='tight')
-            f.seek(0)
-            image = Image.open(f).copy()
-        plt.clf()
-        plt.close('all')
+        signal = self.signals[index]
+        image = self.images[index]
 
         return signal, image
     
@@ -218,8 +228,6 @@ class App(ctk.CTk):
     
     def get_results(self, index):
         _, img = self.dataset[index]
-        img = img.convert("RGB")
-        img = ctk.CTkImage(img, size=(363, 235.2))
         self.specto_img.configure(image=img)
 
 
