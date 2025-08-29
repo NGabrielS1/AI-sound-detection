@@ -170,7 +170,6 @@ class App(ctk.CTk):
 
         #load weights
         self.model.load_state_dict(torch.load((current_path+"/CNNLSTM_VOICE_CV.pt"),map_location=torch.device(self.device)))
-        print(self.model)
 
         #images
         self.landing_logo = ctk.CTkImage(Image.open(current_path+"/assets/VoiceCheck.png"), size=(405, 70.8))
@@ -320,8 +319,6 @@ class App(ctk.CTk):
     def get_results(self, index):
         _, img = self.dataset[index]
         self.specto_img.configure(image=img)
-
-
 
 #info window
 class info_window(ctk.CTkToplevel):
