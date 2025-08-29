@@ -3,8 +3,8 @@ import io
 import time
 import torch
 import random
-import customtkinter as ctk
 import matplotlib
+import customtkinter as ctk
 import matplotlib.pyplot as plt
 from customtkinter import filedialog
 from PIL import Image, ImageFont, ImageDraw
@@ -53,8 +53,6 @@ class CreateDataset(Dataset):
         plt.colorbar(label="dB")
         plt.ylabel("Freq", fontsize=14)
         plt.xlabel("Frame", fontsize=14)
-
-        print(image.squeeze(0).squeeze(0).shape)
 
         # change to PIL img
         with io.BytesIO() as f:
@@ -277,7 +275,7 @@ class CTKListBox(ctk.CTkScrollableFrame):
         values = [value.split("/")[-1] for value in values]
         for i, value in enumerate(values):
             indicator = ctk.CTkLabel(self, width=91, height=27, text=None, fg_color="transparent")
-            widget = ctk.CTkButton(self, height=27, image=self.app.custom_text(f"{i+1:3d}. {value}", self.app.REGULAR, "#000000", 28, "#f9fafb"), text=None, fg_color="transparent", hover=False)
+            widget = ctk.CTkButton(self, height=27, image=self.app.custom_text(f"{i+1:3d}. {value}", self.app.REGULAR, "#000000", 28, "#f9fafb"), text=None, fg_color="transparent", hover=False, command=lambda index=i: self.choose_file(index))
             self.indicators.append(indicator)
             self.file_names.append(widget)
             indicator.grid(row=i, column=0)
@@ -287,6 +285,13 @@ class CTKListBox(ctk.CTkScrollableFrame):
             self.chosen = 0
             self.app.get_results(self.chosen)
         else: self.chosen = None
+    
+    def choose_file(self, index):
+        if self.chosen != index:
+            self.indicators[self.chosen].configure(image = None)
+            self.chosen = index
+            self.app.get_results(self.chosen)
+            self.indicators[self.chosen].configure(image = self.app.custom_text(">", self.app.SEMIBOLD, "#000000", 28, "#f9fafb"))
             
 
 
