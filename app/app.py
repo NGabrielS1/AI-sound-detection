@@ -4,6 +4,7 @@ import time
 import torch
 import random
 import customtkinter as ctk
+import matplotlib
 import matplotlib.pyplot as plt
 from customtkinter import filedialog
 from PIL import Image, ImageFont, ImageDraw
@@ -14,6 +15,7 @@ from torch.utils.data import DataLoader, Dataset
 import torchaudio
 
 ctk.set_appearance_mode("dark")
+matplotlib.use("Agg")
 
 #dataset class
 class CreateDataset(Dataset):
@@ -27,6 +29,7 @@ class CreateDataset(Dataset):
         self.device = device
         self.filenames = sounds
         self.transform = torchaudio.transforms.MelSpectrogram(sample_rate=self.TARGET_SAMPLE_RATE, n_fft=1024, hop_length=512, n_mels=64)
+        self.img_transform = torchaudio.transforms.AmplitudeToDB(stype='magnitude', top_db=100)
     
     # get length of data
     def __len__(self):
@@ -44,7 +47,24 @@ class CreateDataset(Dataset):
         signal = self._right_pad_if_necessary(signal) #pad signal
         signal = self.transform(signal)
 
-        return signal
+        # create image
+        image = self.img_transform(signal)
+        plt.imshow(image.squeeze(0).squeeze(0), aspect="auto", origin="lower", cmap="magma")
+        plt.colorbar(label="dB")
+        plt.ylabel("Freq", fontsize=14)
+        plt.xlabel("Frame", fontsize=14)
+
+        print(image.squeeze(0).squeeze(0).shape)
+
+        # change to PIL img
+        with io.BytesIO() as f:
+            plt.savefig(f, format="png", dpi=300, bbox_inches='tight')
+            f.seek(0)
+            image = Image.open(f).copy()
+        plt.clf()
+        plt.close('all')
+
+        return signal, image
     
     #resample
     def _resample_if_necessary(self, signal, sr):
@@ -84,6 +104,7 @@ class App(ctk.CTk):
         #images
         self.landing_logo = ctk.CTkImage(Image.open(current_path+"/assets/VoiceCheck.png"), size=(405, 70.8))
         self.header_logo = ctk.CTkImage(Image.open(current_path+"/assets/VoiceCheck.png"), size=(363, 67.2))
+        self.shadow_bg = ctk.CTkImage(Image.open(current_path+"/assets/shadow.png"), size=(514, 542.4))
         self.info_img = ctk.CTkImage(Image.open(current_path+"/assets/info.png"), size=(41.4, 41.4))
 
         #fonts
@@ -113,7 +134,7 @@ class App(ctk.CTk):
         #analysis page
         self.header = ctk.CTkFrame(self, height=72, width=self.width, fg_color="#ffffff", corner_radius=0)
         self.sidebar = ctk.CTkFrame(self, height=542.4, width=350, fg_color="#f9fafb", corner_radius=0)
-        self.content = ctk.CTkFrame(self, height=542.4, width=514, fg_color="#000000", corner_radius=0)
+        self.content = ctk.CTkFrame(self, height=542.4, width=514, fg_color="#f9fafb", corner_radius=0)
 
         self.file_count = ctk.CTkLabel(self.header, image=self.custom_text("Files Loaded: 0", self.SEMIBOLD, "#4a4a4a", 42, "#ffffff"), height=72, text=None, fg_color="transparent")
         self.small_logo = ctk.CTkLabel(self.header, image=self.header_logo, width=363, height=72, text=None, fg_color="transparent")
@@ -122,6 +143,9 @@ class App(ctk.CTk):
         self.upload_btn = ctk.CTkButton(self.sidebar, image=self.custom_text("Upload", self.SEMIBOLD, "#ffffff", 32, "#007aff"), text=None, fg_color="#007aff", hover_color="#005FCC", width=174, height=75, corner_radius=27.6 ,command=self.upload_files)
         self.upload_btn.bind("<Enter>", lambda event, button=self.upload_btn: button.configure(image=self.custom_text("Upload", self.SEMIBOLD, "#ffffff", 32, "#005FCC"), fg_color="#005FCC"))
         self.upload_btn.bind("<Leave>", lambda event, button=self.upload_btn: button.configure(image=self.custom_text("Upload", self.SEMIBOLD, "#ffffff", 32, "#007aff"), fg_color="#007aff"))
+
+        self.bg_label = ctk.CTkLabel(self.content, image=self.shadow_bg, width=542.4, height=514, fg_color="transparent", text=None, corner_radius=0)
+        self.specto_img = ctk.CTkLabel(self.content, fg_color="transparent", width=363, height=235.2, text=None)
 
         self.next_page()
 
@@ -181,13 +205,26 @@ class App(ctk.CTk):
         self.sidebar.rowconfigure(4, weight=1)
         self.sound_list.grid(row=1, column=0)
         self.upload_btn.grid(row=3, column=0)
+
+        self.bg_label.grid(row=0, column=0, sticky="nsew")
+        self.specto_img.grid(row=0, column=0)
     
     def upload_files(self):
         self.files = filedialog.askopenfilenames(filetypes=[("Audio Files", "*.wav *.ogg *.mp3")])
-        self.sound_list.load_items(values=self.files)
         self.file_count.configure(image=self.custom_text(f"Files Loaded: {len(self.files)}", self.SEMIBOLD, "#4a4a4a", 42, "#ffffff"))
 
         self.dataset = CreateDataset(self.files, self.device)
+        self.dataloader = DataLoader(self.dataset, batch_size=1, shuffle=False)
+
+        self.sound_list.load_items(values=self.files)
+    
+    def get_results(self, index):
+        _, img = self.dataset[index]
+        img = img.convert("RGB")
+        img = ctk.CTkImage(img, size=(363, 235.2))
+        self.specto_img.configure(image=img)
+
+
 
 #info window
 class info_window(ctk.CTkToplevel):
@@ -223,11 +260,12 @@ class info_window(ctk.CTkToplevel):
 class CTKListBox(ctk.CTkScrollableFrame):
     def __init__(self, master, width=350, height=301.2, fg_color="#f9fafb", corner_radius=0):
         super().__init__(master=master, width=width, height=height, fg_color=fg_color, corner_radius=corner_radius)
-        self.master = master
+        self.app = master.master
 
         self.file_names = []
         self.index_labels = []
         self.indicators = []
+        self.chosen = None
         self.columnconfigure(0, weight=0)
         self.columnconfigure(1, weight=0)
         self.columnconfigure(2, weight=2)
@@ -239,12 +277,16 @@ class CTKListBox(ctk.CTkScrollableFrame):
         values = [value.split("/")[-1] for value in values]
         for i, value in enumerate(values):
             indicator = ctk.CTkLabel(self, width=91, height=27, text=None, fg_color="transparent")
-            widget = ctk.CTkButton(self, height=27, image=self.master.master.custom_text(f"{i+1:3d}. {value}", self.master.master.REGULAR, "#000000", 28, "#f9fafb"), text=None, fg_color="transparent", hover=False)
+            widget = ctk.CTkButton(self, height=27, image=self.app.custom_text(f"{i+1:3d}. {value}", self.app.REGULAR, "#000000", 28, "#f9fafb"), text=None, fg_color="transparent", hover=False)
             self.indicators.append(indicator)
             self.file_names.append(widget)
             indicator.grid(row=i, column=0)
             widget.grid(row=i, column=1)
-            
+        if len(values) > 0:
+            self.indicators[0].configure(image = self.app.custom_text(">", self.app.SEMIBOLD, "#000000", 28, "#f9fafb"))
+            self.chosen = 0
+            self.app.get_results(self.chosen)
+        else: self.chosen = None
             
 
 
