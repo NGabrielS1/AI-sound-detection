@@ -70,9 +70,12 @@ class CreateDataset(Dataset):
     # get item
     def __getitem__(self, index):
         signal = self.signals[index]
-        image = self.images[index]
 
-        return signal, image
+        return signal
+    
+    def get_img(self, index):
+        image = self.images[index]
+        return image
     
     #resample
     def _resample_if_necessary(self, signal, sr):
@@ -147,6 +150,7 @@ class App(ctk.CTk):
 
     #variables
     files = []
+    results = []
     width = 864
     height = 614.4
 
@@ -220,14 +224,11 @@ class App(ctk.CTk):
         self.play_btn.bind("<Enter>", lambda event, button=self.play_btn: button.configure(image=self.custom_text("Play", self.SEMIBOLD, "#ffffff", 25, "#28A745"), text=None, fg_color="#28A745"))
         self.play_btn.bind("<Leave>", lambda event, button=self.play_btn: button.configure(image=self.custom_text("Play", self.SEMIBOLD, "#ffffff", 25, "#34c759"), text=None, fg_color="#34c759"))
         self.result_text_label = ctk.CTkLabel(self.content, image=self.custom_text("Result:", self.SEMIBOLD, "#000000", 32, "#ffffff", pad_right=79), width=151, height=30, text=None, fg_color="white")
-        self.result_value_label = ctk.CTkLabel(self.content, width=96, height=30, text=None, fg_color="#FF3B30")
+        self.result_value_label = ctk.CTkLabel(self.content, width=96, height=30, text=None, fg_color="white")
         self.result_spacer_label = ctk.CTkLabel(self.content, width=151, height=30, text=None, fg_color="white")
         self.confidence_text_label = ctk.CTkLabel(self.content, image=self.custom_text("Confidence:", self.SEMIBOLD, "#000000", 32, "#ffffff"), width=151, height=30, text=None, fg_color="white")
-        self.confidence_value_label = ctk.CTkLabel(self.content, width=96, height=30, text=None, fg_color="#FF3B30")
+        self.confidence_value_label = ctk.CTkLabel(self.content, width=96, height=30, text=None, fg_color="white")
         self.confidence_spacer_label = ctk.CTkLabel(self.content, width=151, height=30, text=None, fg_color="white")
-
-        self.next_page()
-
     
     def custom_text(self, text, font, color, fontsize, bgcolor, anchor="lt", pad_right=0):
         #load font
@@ -311,13 +312,25 @@ class App(ctk.CTk):
         self.files = filedialog.askopenfilenames(filetypes=[("Audio Files", "*.wav *.ogg *.mp3")])
         self.file_count.configure(image=self.custom_text(f"Files Loaded: {len(self.files)}", self.SEMIBOLD, "#4a4a4a", 42, "#ffffff"))
 
+        #get spectograms
         self.dataset = CreateDataset(self.files, self.device)
         self.dataloader = DataLoader(self.dataset, batch_size=1, shuffle=False)
+
+        #get results
+        self.results = []
+        softmax = nn.Softmax(dim=1)
+        self.model.eval()
+        with torch.no_grad():
+            for batch, image in enumerate(self.dataloader):
+                image = image.to(self.device)
+                x = self.model(image)
+                x = softmax(x).squeeze().tolist()
+                self.results.append(x)
 
         self.sound_list.load_items(values=self.files)
     
     def get_results(self, index):
-        _, img = self.dataset[index]
+        img = self.dataset.get_img(index)
         self.specto_img.configure(image=img)
 
 #info window
@@ -380,6 +393,7 @@ class CTKListBox(ctk.CTkScrollableFrame):
             self.indicators[0].configure(image = self.app.custom_text(">", self.app.SEMIBOLD, "#000000", 28, "#f9fafb"))
             self.chosen = 0
             self.app.get_results(self.chosen)
+            self.update_values(self.chosen)
         else: self.chosen = None
     
     def choose_file(self, index):
@@ -388,8 +402,18 @@ class CTKListBox(ctk.CTkScrollableFrame):
             self.chosen = index
             self.app.get_results(self.chosen)
             self.indicators[self.chosen].configure(image = self.app.custom_text(">", self.app.SEMIBOLD, "#000000", 28, "#f9fafb"))
-            
+            self.update_values(self.chosen)
 
+    def update_values(self, index):
+        percent = max(self.app.results[index])
+        result = self.app.results[index].index(percent)
+        if result == 0:
+            result = "AI"
+        else:
+            result = "Human"
+            
+        self.app.result_value_label.configure(image=self.app.custom_text(result, self.app.REGULAR, "#FF3B30", 32, "white"))
+        self.app.confidence_value_label.configure(image=self.app.custom_text(str(int(percent*100))+"%", self.app.REGULAR, "#FF3B30", 32, "white"))
 
 # Run application
 if __name__ == "__main__":
