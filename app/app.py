@@ -89,6 +89,57 @@ class CreateDataset(Dataset):
             signal = torch.nn.functional.pad(signal, last_dim_padding)
         return signal
 
+#model
+class CNNLSTM(nn.Module):
+    def __init__(self, input_len, hidden_size, num_classes, num_layers):
+        super(CNNLSTM, self).__init__()
+        #variables
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
+
+        #CNN
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3, stride=1, padding=2),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2)
+        )
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=1, padding=2),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2)
+        )
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=2),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2)
+        )
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=2),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2)
+        )
+        #LSTM
+        self.lstm = nn.LSTM(input_len, hidden_size, num_layers, batch_first=True)
+        self.output_layer = nn.Linear(hidden_size, num_classes)
+    
+    def forward(self, X):
+        X = self.conv1(X)
+        X = self.conv2(X)
+        X = self.conv3(X)
+        X = self.conv4(X)
+
+        X = X.permute(0, 2, 3, 1)
+        # X = X.reshape(-1, sequence_len, input_len)
+        B, H, W, C = X.shape
+        X = X.reshape(B, H * W, C)
+
+        hidden_states = torch.zeros(self.num_layers, X.size(0), self.hidden_size, device=X.device) # state of the hidden layers (short term memory)
+        cell_states = torch.zeros(self.num_layers, X.size(0), self.hidden_size, device=X.device) # long term memory
+        out, _ = self.lstm(X, (hidden_states, cell_states))
+        out = self.output_layer(out[:, -1, :]) # flatten before output layer
+        return out
+
+
 #app window
 class App(ctk.CTk):
     # find device
@@ -99,6 +150,14 @@ class App(ctk.CTk):
     width = 864
     height = 614.4
 
+    #create model
+    input_len = 128
+    hidden_size = 128
+    num_layers = 2
+    num_classes = 2
+
+    model = CNNLSTM(input_len=input_len, hidden_size=hidden_size, num_classes=num_classes, num_layers=num_layers)
+
     def __init__(self):
         super().__init__()
 
@@ -108,6 +167,10 @@ class App(ctk.CTk):
         self.resizable(0, 0)
         self.configure(fg_color='#f5f5f7')
         current_path = os.path.dirname(os.path.realpath(__file__))
+
+        #load weights
+        self.model.load_state_dict(torch.load((current_path+"/CNNLSTM_VOICE_CV.pt"),map_location=torch.device(self.device)))
+        print(self.model)
 
         #images
         self.landing_logo = ctk.CTkImage(Image.open(current_path+"/assets/VoiceCheck.png"), size=(405, 70.8))
@@ -153,12 +216,21 @@ class App(ctk.CTk):
         self.upload_btn.bind("<Leave>", lambda event, button=self.upload_btn: button.configure(image=self.custom_text("Upload", self.SEMIBOLD, "#ffffff", 32, "#007aff"), fg_color="#007aff"))
 
         self.bg_label = ctk.CTkLabel(self.content, image=self.shadow_bg, width=542.4, height=514, fg_color="transparent", text=None, corner_radius=0)
-        self.specto_img = ctk.CTkLabel(self.content, fg_color="transparent", width=363, height=235.2, text=None)
+        self.specto_img = ctk.CTkLabel(self.content, fg_color="white", width=363, height=235.2, text=None)
+        self.play_btn = ctk.CTkButton(self.content, image=self.custom_text("Play", self.SEMIBOLD, "#ffffff", 25, "#34c759"), text=None, fg_color="#34c759", hover_color="#28A745", width=117, height=48, corner_radius=27.6)
+        self.play_btn.bind("<Enter>", lambda event, button=self.play_btn: button.configure(image=self.custom_text("Play", self.SEMIBOLD, "#ffffff", 25, "#28A745"), text=None, fg_color="#28A745"))
+        self.play_btn.bind("<Leave>", lambda event, button=self.play_btn: button.configure(image=self.custom_text("Play", self.SEMIBOLD, "#ffffff", 25, "#34c759"), text=None, fg_color="#34c759"))
+        self.result_text_label = ctk.CTkLabel(self.content, image=self.custom_text("Result:", self.SEMIBOLD, "#000000", 32, "#ffffff", pad_right=79), width=151, height=30, text=None, fg_color="white")
+        self.result_value_label = ctk.CTkLabel(self.content, width=96, height=30, text=None, fg_color="#FF3B30")
+        self.result_spacer_label = ctk.CTkLabel(self.content, width=151, height=30, text=None, fg_color="white")
+        self.confidence_text_label = ctk.CTkLabel(self.content, image=self.custom_text("Confidence:", self.SEMIBOLD, "#000000", 32, "#ffffff"), width=151, height=30, text=None, fg_color="white")
+        self.confidence_value_label = ctk.CTkLabel(self.content, width=96, height=30, text=None, fg_color="#FF3B30")
+        self.confidence_spacer_label = ctk.CTkLabel(self.content, width=151, height=30, text=None, fg_color="white")
 
         self.next_page()
 
     
-    def custom_text(self, text, font, color, fontsize, bgcolor, anchor="lt"):
+    def custom_text(self, text, font, color, fontsize, bgcolor, anchor="lt", pad_right=0):
         #load font
         font = ImageFont.truetype(font=font, size=fontsize)
 
@@ -167,7 +239,7 @@ class App(ctk.CTk):
         dummy_draw = ImageDraw.Draw(dummy_image)
         text = text.split("\n") #seperate by newline (enter)
         left, top, right, bottom = dummy_draw.textbbox((0, 0), text=max(text, key=len), font=font, anchor=anchor)
-        width = right - left + 10 #10px padding
+        width = right - left + 10 + pad_right#10px padding
         height = (bottom - top + 10) * len(text)
 
         #create img
@@ -214,8 +286,27 @@ class App(ctk.CTk):
         self.sound_list.grid(row=1, column=0)
         self.upload_btn.grid(row=3, column=0)
 
-        self.bg_label.grid(row=0, column=0, sticky="nsew")
-        self.specto_img.grid(row=0, column=0)
+        self.content.rowconfigure(0, weight=0)
+        self.content.rowconfigure(1, weight=1)
+        self.content.rowconfigure(2, weight=0)
+        self.content.rowconfigure(3, weight=0)
+        self.content.rowconfigure(4, weight=0)
+        self.content.rowconfigure(5, weight=0)
+        self.content.rowconfigure(6, weight=1)
+        self.content.columnconfigure(0, weight=1)
+        self.content.columnconfigure(1, weight=0)
+        self.content.columnconfigure(2, weight=0)
+        self.content.columnconfigure(3, weight=0)
+        self.content.columnconfigure(4, weight=1)
+        self.bg_label.grid(row=0, column=0, sticky="nsew", rowspan=7, columnspan=5)
+        self.specto_img.grid(row=2, column=1, columnspan=3)
+        self.play_btn.grid(row=3, column=2)
+        self.result_text_label.grid(row=4, column=1)
+        self.result_value_label.grid(row=4, column=2)
+        self.result_spacer_label.grid(row=4, column=3)
+        self.confidence_text_label.grid(row=5, column=1)
+        self.confidence_value_label.grid(row=5, column=2)
+        self.confidence_spacer_label.grid(row=5, column=3)
     
     def upload_files(self):
         self.files = filedialog.askopenfilenames(filetypes=[("Audio Files", "*.wav *.ogg *.mp3")])
