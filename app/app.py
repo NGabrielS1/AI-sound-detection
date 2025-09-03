@@ -229,6 +229,12 @@ class App(ctk.CTk):
         self.confidence_text_label = ctk.CTkLabel(self.content, image=self.custom_text("Confidence:", self.SEMIBOLD, "#000000", 32, "#ffffff"), width=151, height=30, text=None, fg_color="white")
         self.confidence_value_label = ctk.CTkLabel(self.content, width=96, height=30, text=None, fg_color="white")
         self.confidence_spacer_label = ctk.CTkLabel(self.content, width=151, height=30, text=None, fg_color="white")
+        self.prev_btn = ctk.CTkButton(self.content, image=self.custom_text("< Previous", self.SEMIBOLD, "#ffffff", 20, "#d1d1d6"), text=None, fg_color="#d1d1d6", hover_color="#E5E5EA", width=141, height=63.6, corner_radius=27.6, command=lambda: self.sound_list.choose_file((self.sound_list.chosen-1)%len(self.files)))
+        self.prev_btn.bind("<Enter>", lambda event, button=self.prev_btn: button.configure(image=self.custom_text("< Previous", self.SEMIBOLD, "#ffffff", 20, "#E5E5EA"), text=None, fg_color="#E5E5EA"))
+        self.prev_btn.bind("<Leave>", lambda event, button=self.prev_btn: button.configure(image=self.custom_text("< Previous", self.SEMIBOLD, "#ffffff", 20, "#d1d1d6"), text=None, fg_color="#d1d1d6"))
+        self.next_btn = ctk.CTkButton(self.content, image=self.custom_text("Next >", self.SEMIBOLD, "#ffffff", 25, "#d1d1d6"), text=None, fg_color="#d1d1d6", hover_color="#E5E5EA", width=141, height=63.6, corner_radius=27.6, command=lambda: self.sound_list.choose_file((self.sound_list.chosen+1)%len(self.files)))
+        self.next_btn.bind("<Enter>", lambda event, button=self.next_btn: button.configure(image=self.custom_text("Next >", self.SEMIBOLD, "#ffffff", 25, "#E5E5EA"), text=None, fg_color="#E5E5EA"))
+        self.next_btn.bind("<Leave>", lambda event, button=self.next_btn: button.configure(image=self.custom_text("Next >", self.SEMIBOLD, "#ffffff", 25, "#d1d1d6"), text=None, fg_color="#d1d1d6"))
     
     def custom_text(self, text, font, color, fontsize, bgcolor, anchor="lt", pad_right=0):
         #load font
@@ -287,12 +293,12 @@ class App(ctk.CTk):
         self.upload_btn.grid(row=3, column=0)
 
         self.content.rowconfigure(0, weight=0)
-        self.content.rowconfigure(1, weight=1)
+        self.content.rowconfigure(1, weight=0)
         self.content.rowconfigure(2, weight=0)
         self.content.rowconfigure(3, weight=0)
         self.content.rowconfigure(4, weight=0)
         self.content.rowconfigure(5, weight=0)
-        self.content.rowconfigure(6, weight=1)
+        self.content.rowconfigure(6, weight=0)
         self.content.columnconfigure(0, weight=1)
         self.content.columnconfigure(1, weight=0)
         self.content.columnconfigure(2, weight=0)
@@ -300,13 +306,15 @@ class App(ctk.CTk):
         self.content.columnconfigure(4, weight=1)
         self.bg_label.grid(row=0, column=0, sticky="nsew", rowspan=7, columnspan=5)
         self.specto_img.grid(row=2, column=1, columnspan=3)
-        self.play_btn.grid(row=3, column=2)
+        self.play_btn.grid(row=3, column=2, pady=20)
         self.result_text_label.grid(row=4, column=1)
         self.result_value_label.grid(row=4, column=2)
         self.result_spacer_label.grid(row=4, column=3)
         self.confidence_text_label.grid(row=5, column=1)
         self.confidence_value_label.grid(row=5, column=2)
         self.confidence_spacer_label.grid(row=5, column=3)
+        self.prev_btn.grid(row=6, column=1, pady=(20, 30))
+        self.next_btn.grid(row=6, column=3, pady=(20, 30))
     
     def upload_files(self):
         self.files = filedialog.askopenfilenames(filetypes=[("Audio Files", "*.wav *.ogg *.mp3")])
