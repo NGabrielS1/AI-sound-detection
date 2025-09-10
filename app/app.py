@@ -5,6 +5,8 @@ import torch
 import random
 import matplotlib
 import customtkinter as ctk
+from pydub import AudioSegment
+from pydub.playback import play
 import matplotlib.pyplot as plt
 from customtkinter import filedialog
 from PIL import Image, ImageFont, ImageDraw
@@ -220,7 +222,7 @@ class App(ctk.CTk):
 
         self.bg_label = ctk.CTkLabel(self.content, image=self.shadow_bg, width=542.4, height=514, fg_color="transparent", text=None, corner_radius=0)
         self.specto_img = ctk.CTkLabel(self.content, fg_color="white", width=363, height=235.2, text=None)
-        self.play_btn = ctk.CTkButton(self.content, image=self.custom_text("Play", self.SEMIBOLD, "#ffffff", 25, "#34c759"), text=None, fg_color="#34c759", hover_color="#28A745", width=117, height=48, corner_radius=27.6)
+        self.play_btn = ctk.CTkButton(self.content, image=self.custom_text("Play", self.SEMIBOLD, "#ffffff", 25, "#34c759"), text=None, fg_color="#34c759", hover_color="#28A745", width=117, height=48, corner_radius=27.6, command=lambda: self.playsound(self.files[self.sound_list.chosen]))
         self.play_btn.bind("<Enter>", lambda event, button=self.play_btn: button.configure(image=self.custom_text("Play", self.SEMIBOLD, "#ffffff", 25, "#28A745"), text=None, fg_color="#28A745"))
         self.play_btn.bind("<Leave>", lambda event, button=self.play_btn: button.configure(image=self.custom_text("Play", self.SEMIBOLD, "#ffffff", 25, "#34c759"), text=None, fg_color="#34c759"))
         self.result_text_label = ctk.CTkLabel(self.content, image=self.custom_text("Result:", self.SEMIBOLD, "#000000", 32, "#ffffff", pad_right=79), width=151, height=30, text=None, fg_color="white")
@@ -235,6 +237,10 @@ class App(ctk.CTk):
         self.next_btn = ctk.CTkButton(self.content, image=self.custom_text("Next >", self.SEMIBOLD, "#ffffff", 25, "#d1d1d6"), text=None, fg_color="#d1d1d6", hover_color="#E5E5EA", width=141, height=63.6, corner_radius=27.6, command=lambda: self.sound_list.choose_file((self.sound_list.chosen+1)%len(self.files)))
         self.next_btn.bind("<Enter>", lambda event, button=self.next_btn: button.configure(image=self.custom_text("Next >", self.SEMIBOLD, "#ffffff", 25, "#E5E5EA"), text=None, fg_color="#E5E5EA"))
         self.next_btn.bind("<Leave>", lambda event, button=self.next_btn: button.configure(image=self.custom_text("Next >", self.SEMIBOLD, "#ffffff", 25, "#d1d1d6"), text=None, fg_color="#d1d1d6"))
+    
+    def playsound(self, file):
+        sound = AudioSegment.from_file(file)[:2000]
+        play(sound)
     
     def custom_text(self, text, font, color, fontsize, bgcolor, anchor="lt", pad_right=0):
         #load font
